@@ -27,14 +27,16 @@ public class SimpleMongo {
         private List<Integer> tscores;
         private List<Integer> tdates;
         private List<Integer> nOfTweet;
-        
+        public DBCollection tweetTable;
+        public String delims = "[ ]";
+		public String[] tokens;
         
         public void mongoTest(String ip,int port,String dbname) throws Exception{
               
                mongoClient = new MongoClient(new ServerAddress(ip,port));
                db = mongoClient.getDB(dbname);
               
-               DBCollection tweetTable = db.getCollection("tweetTable");
+              tweetTable = db.getCollection("tweetTable");
 //               BasicDBObject doc = new BasicDBObject("name", "MongoDB");
 ////                append("type", "database").
 ////                append("count", 1).
@@ -60,53 +62,66 @@ public class SimpleMongo {
                }
                
                tweetTable.insert(list);
-               
-               //group date and sum scores in same day
-               DBObject group = new BasicDBObject(
-            		    "$group", new BasicDBObject("_id", "$date").append(
-            		        "scoreOfday", new BasicDBObject( "$sum", "$score" ).append(
-            		        		"numberOfTweet", new BasicDBObject("$sum", 1))
-            		    )
-               );
-               
-               //sort by date
-               DBObject sortFields = new BasicDBObject("_id", 1);
-               DBObject sort = new BasicDBObject("$sort", sortFields );
-               
-               // run aggregation
-               List<DBObject> pipeline = Arrays.asList(group, sort);
-               AggregationOutput output = tweetTable.aggregate(pipeline);
-               
-               
-               tdates = new ArrayList<Integer>();
-               tscores = new ArrayList<Integer>();
-               nOfTweet = new ArrayList<Integer>();
-               
-               String strLine;
-   			   String delims = "[ ]";
-   			   String[] tokens;
-
-               for (DBObject result : output.results()) {
-            	   tokens = result.toString().split(delims);
-//            	   System.out.println(tokens[3]);
-//            	   System.out.println(tokens[7]);
-            	   tdates.add(Integer.valueOf(tokens[3].replace("\"", "")));
-            	   tscores.add(Integer.valueOf(tokens[7].replace("}", "")));
-            	  
-               }
-               
-               
-               writeFile1();
-               writeFile2();
-//               new LineChartSample("asdf").start();
-//               //print all data
-//               DBCursor cursor = tweetTable.find();
-//               while(cursor.hasNext()){
-//            	   System.out.println(cursor.next());
-//               }
+              
+               generateNumOfTweet();
+               writeDateFile();
+//               writeScoreFile();
+               writeNumOfTweetFile();
         }
         
-        public void writeFile1() throws IOException{
+        public void generateNumOfTweet(){
+        	  DBObject group = new BasicDBObject(
+          		    "$group", new BasicDBObject("_id", "$date").append(
+          		        "scoreOfday", new BasicDBObject( "$sum", 1 )
+          		    )
+             );
+             
+             //sort by date
+             DBObject sortFields = new BasicDBObject("_id", 1);
+             DBObject sort = new BasicDBObject("$sort", sortFields );
+             
+             // run aggregation
+             List<DBObject> pipeline = Arrays.asList(group, sort);
+             AggregationOutput output = tweetTable.aggregate(pipeline);
+             
+             tdates = new ArrayList<Integer>();
+             tscores = new ArrayList<Integer>();
+             
+             for (DBObject result : output.results()) {
+          	   tokens = result.toString().split(delims);
+          	   tdates.add(Integer.valueOf(tokens[3].replace("\"", "")));
+        	   tscores.add(Integer.valueOf(tokens[7].replace("}", "")));
+             }
+        }
+        
+        public void generateDailyScore(){
+        	
+        	 //group date and sum scores in same day
+            DBObject group = new BasicDBObject(
+         		    "$group", new BasicDBObject("_id", "$date").append(
+         		        "scoreOfday", new BasicDBObject( "$sum", "$score" )
+         		    )
+            );
+            
+            //sort by date
+            DBObject sortFields = new BasicDBObject("_id", 1);
+            DBObject sort = new BasicDBObject("$sort", sortFields );
+            
+            // run aggregation
+            List<DBObject> pipeline = Arrays.asList(group, sort);
+            AggregationOutput output = tweetTable.aggregate(pipeline);
+            
+            tdates = new ArrayList<Integer>();
+            nOfTweet = new ArrayList<Integer>();
+            
+            for (DBObject result : output.results()) {
+           	   tokens = result.toString().split(delims);
+           	   tdates.add(Integer.valueOf(tokens[3].replace("\"", "")));
+        	   tscores.add(Integer.valueOf(tokens[7].replace("}", "")));
+            }
+        }
+        
+        public void writeDateFile() throws IOException{
         	
         	File fout = new File("dateFile.txt");
         	FileOutputStream fos = new FileOutputStream(fout);
@@ -119,12 +134,11 @@ public class SimpleMongo {
 			while(dItr.hasNext()){
 				bw.write(dItr.next().toString());
 				bw.newLine();
-//				System.out.println(dItr.next());
 			}
 			bw.close();
         }
         
-        public void writeFile2(){
+        public void writeScoreFile(){
         	try {
         		 
     			File file = new File("scoreFile.txt");
@@ -151,12 +165,46 @@ public class SimpleMongo {
     			e.printStackTrace();
     		}
         }
+        
+        public void writeNumOfTweetFile(){
+        	try {
+        		 
+    			File file = new File("NumOfTweet.txt");
+     
+    			// if file doesnt exists, then create it
+    			if (!file.exists()) {
+    				file.createNewFile();
+    			}
+     
+    			FileWriter fw = new FileWriter(file.getAbsoluteFile());
+    			BufferedWriter bw = new BufferedWriter(fw);
+    			List<Integer> not = getTnum();
+    			Iterator<Integer> itr = not.iterator();
+    			
+    			while(itr.hasNext()){
+    				bw.write(itr.next().toString());
+    				bw.newLine();
+    			}
+    			bw.close();
+     
+    			System.out.println("Done");
+     
+    		} catch (IOException e) {
+    			e.printStackTrace();
+    		}
+        }
+        
         public List<Integer> getTdate(){
         	return tdates;
         }
         
         public List<Integer> getTscores(){
         	return tscores;
+        }  
+        
+
+        public List<Integer> getTnum(){
+        	return nOfTweet;
         }  
         
         public static void main(String args[]) throws Exception{
