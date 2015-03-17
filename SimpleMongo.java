@@ -85,12 +85,12 @@ public class SimpleMongo {
              AggregationOutput output = tweetTable.aggregate(pipeline);
              
              tdates = new ArrayList<Integer>();
-             tscores = new ArrayList<Integer>();
-             
+             nOfTweet = new ArrayList<Integer>();
+            
              for (DBObject result : output.results()) {
           	   tokens = result.toString().split(delims);
           	   tdates.add(Integer.valueOf(tokens[3].replace("\"", "")));
-        	   tscores.add(Integer.valueOf(tokens[7].replace("}", "")));
+        	   nOfTweet.add(Integer.valueOf(tokens[7].replace("}", "")));
              }
         }
         
@@ -112,12 +112,13 @@ public class SimpleMongo {
             AggregationOutput output = tweetTable.aggregate(pipeline);
             
             tdates = new ArrayList<Integer>();
-            nOfTweet = new ArrayList<Integer>();
+            tscores = new ArrayList<Integer>();
             
             for (DBObject result : output.results()) {
            	   tokens = result.toString().split(delims);
            	   tdates.add(Integer.valueOf(tokens[3].replace("\"", "")));
         	   tscores.add(Integer.valueOf(tokens[7].replace("}", "")));
+        	   System.out.println(result);
             }
         }
         
