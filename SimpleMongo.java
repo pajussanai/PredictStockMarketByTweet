@@ -64,8 +64,9 @@ public class SimpleMongo {
                tweetTable.insert(list);
               
                generateNumOfTweet();
+               generateDailyScore();
                writeDateFile();
-//               writeScoreFile();
+               writeScoreFile();
                writeNumOfTweetFile();
         }
         
@@ -118,7 +119,7 @@ public class SimpleMongo {
            	   tokens = result.toString().split(delims);
            	   tdates.add(Integer.valueOf(tokens[3].replace("\"", "")));
         	   tscores.add(Integer.valueOf(tokens[7].replace("}", "")));
-        	   System.out.println(result);
+//        	   System.out.println(result);
             }
         }
         
@@ -137,6 +138,7 @@ public class SimpleMongo {
 				bw.newLine();
 			}
 			bw.close();
+			System.out.println("Writing date of tweet is Done");
         }
         
         public void writeScoreFile(){
@@ -160,7 +162,7 @@ public class SimpleMongo {
     			}
     			bw.close();
      
-    			System.out.println("Done");
+    			System.out.println("Writing score of each date is Done");
      
     		} catch (IOException e) {
     			e.printStackTrace();
@@ -188,7 +190,7 @@ public class SimpleMongo {
     			}
     			bw.close();
      
-    			System.out.println("Done");
+    			System.out.println("Writing number of tweet is done");
      
     		} catch (IOException e) {
     			e.printStackTrace();

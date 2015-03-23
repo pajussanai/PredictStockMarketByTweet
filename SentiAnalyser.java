@@ -41,8 +41,18 @@ public class SentiAnalyser {
 				negativeWords.add(string);
 			}
 		}
-
-		output.put("sentiment", countP - countN);
+		
+		if((countP - countN) >= 5){
+			output.put("sentiment", 2);
+		}else if((countP - countN) < 5 && (countP - countN) > 0){
+			output.put("sentiment", 1);
+		}else if((countP - countN) == 0){
+			output.put("sentiment", 0);
+		}else if((countP - countN) < 0 && (countP - countN) > -5){
+			output.put("sentiment", -1);
+		}else if((countP - countN) <= -5){
+			output.put("sentiment", -2);
+		}
 		output.put("sentiment_positive", countP);
 		output.put("sentiment_negative", countN);
 		output.put("positive_words", positiveWords);
