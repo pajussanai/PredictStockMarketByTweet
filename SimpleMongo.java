@@ -27,12 +27,14 @@ public class SimpleMongo {
         private List<Integer> tscores;
         private List<Integer> tdates;
         private List<Integer> nOfTweet;
+        private List<String> tweets;
+        
         public DBCollection tweetTable;
         public String delims = "[ ]";
 		public String[] tokens;
         
         public void mongoTest(String ip,int port,String dbname) throws Exception{
-              
+               //connect with mongoDB server
                mongoClient = new MongoClient(new ServerAddress(ip,port));
                db = mongoClient.getDB(dbname);
               
@@ -44,15 +46,22 @@ public class SimpleMongo {
 //               doc.put("type", "database");	   
 //               doc.put("count", 1);	   
                
+               //run collecting data and add filtered data in the list
                CollectData cd = new CollectData();
                List<DBObject> list = new ArrayList<DBObject>();
                List<String> tList = cd.getTweetList();
+               
+               //write tweet
+               writeTweetFile(tList);
+               
+               
                List<String> dList = cd.getDateList();
                List<Integer> sList = cd.getScoreList();
                Iterator<String> titr = tList.iterator();
                Iterator<String> ditr = dList.iterator();
                Iterator<Integer> sitr = sList.iterator();
                
+               //make a table in database (eg. date - tweet - score)
                while(titr.hasNext()){
             	   BasicDBObject data = new BasicDBObject();
                	   data.append("date", ditr.next());
@@ -62,12 +71,12 @@ public class SimpleMongo {
                }
                
                tweetTable.insert(list);
-              
-               generateNumOfTweet();
+               
+//               generateNumOfTweet();
                generateDailyScore();
-               writeDateFile();
+//               writeDateFile();
                writeScoreFile();
-               writeNumOfTweetFile();
+//               writeNumOfTweetFile();
         }
         
         public void generateNumOfTweet(){
@@ -125,7 +134,7 @@ public class SimpleMongo {
         
         public void writeDateFile() throws IOException{
         	
-        	File fout = new File("dateFile.txt");
+        	File fout = new File("dateFile(aapl).txt");
         	FileOutputStream fos = new FileOutputStream(fout);
          
         	BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
@@ -141,10 +150,38 @@ public class SimpleMongo {
 			System.out.println("Writing date of tweet is Done");
         }
         
+        public void writeTweetFile(List<String> t){
+        	try {
+        		 
+    			File file = new File("tweetFile(aapl).txt");
+     
+    			// if file doesnt exists, then create it
+    			if (!file.exists()) {
+    				file.createNewFile();
+    			}
+     
+    			FileWriter fw = new FileWriter(file.getAbsoluteFile());
+    			BufferedWriter bw = new BufferedWriter(fw);
+    			List<String> tweet = t;
+    			Iterator<String> tItr = tweet.iterator();
+    			
+    			while(tItr.hasNext()){
+    				bw.write(tItr.next().toString());
+    				bw.newLine();
+    			}
+    			bw.close();
+     
+    			System.out.println("Writing tweet is Done");
+     
+    		} catch (IOException e) {
+    			e.printStackTrace();
+    		}
+        }
+        
         public void writeScoreFile(){
         	try {
         		 
-    			File file = new File("scoreFile.txt");
+    			File file = new File("scoreFile(aapl).txt");
      
     			// if file doesnt exists, then create it
     			if (!file.exists()) {
@@ -172,7 +209,7 @@ public class SimpleMongo {
         public void writeNumOfTweetFile(){
         	try {
         		 
-    			File file = new File("NumOfTweet.txt");
+    			File file = new File("NumOfTweet(aapl).txt");
      
     			// if file doesnt exists, then create it
     			if (!file.exists()) {
@@ -210,9 +247,13 @@ public class SimpleMongo {
         	return nOfTweet;
         }  
         
+        public List<String> getTweet(){
+        	return tweets;
+        }  
+        
         public static void main(String args[]) throws Exception{
                SimpleMongo testRunner = new SimpleMongo();
-               testRunner.mongoTest("localhost", 27017, "tweetdb");
+               testRunner.mongoTest("localhost", 27017, "tweet_aapl2_db");
         }
 }
  

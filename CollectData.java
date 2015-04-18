@@ -20,7 +20,7 @@ public class CollectData {
 		FileInputStream fstream;
 		
 		try {
-			fstream = new FileInputStream("bidu.txt");
+			fstream = new FileInputStream("aapl.txt");
 			BufferedReader br = new BufferedReader(new InputStreamReader(
 					fstream));
 			
